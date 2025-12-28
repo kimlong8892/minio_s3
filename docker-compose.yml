@@ -16,5 +16,26 @@ services:
       - minio_data:/data
     command: server /data --console-address ":9001"
 
+  minio-init:
+    image: minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 10;
+      mc alias set local http://minio:9000 minioadmin minioadmin123;
+
+      mc mb -p local/goouty-prod;
+      mc mb -p local/goouty-dev;
+      mc mb -p local/goouty-local;
+
+      mc anonymous set public local/goouty-prod;
+      mc anonymous set public local/goouty-dev;
+      mc anonymous set public local/goouty-local;
+
+      echo 'Buckets created & public access enabled';
+      "
+
 volumes:
   minio_data:
